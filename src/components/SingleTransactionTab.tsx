@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { TransactionData, PredictionResult, PolicyConfig } from '../types';
 import { predictTransaction, FEATURE_COLS } from '../lib/xgboost';
 import { QUICK_PRESETS } from '../lib/demoData';
-import { Search, AlertOctagon, CheckCircle2, AlertTriangle, ShieldX, Sparkles, RotateCcw, ArrowRight, Activity } from 'lucide-react';
+import { useDataContext } from '../context/DataContext';
+import { Search, CheckCircle2, AlertTriangle, ShieldX, Sparkles, RotateCcw, Activity, Info } from 'lucide-react';
 
 interface Props {
   policy: PolicyConfig;
@@ -15,6 +16,7 @@ const DEFAULT_TX: TransactionData = {
 };
 
 export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
+  const { appendSingleTransaction } = useDataContext();
   const [formData, setFormData] = useState<TransactionData>(DEFAULT_TX);
   const [prediction, setPrediction] = useState<PredictionResult | null>(() => predictTransaction(DEFAULT_TX, policy));
   const [activePreset, setActivePreset] = useState<string | null>(null);
@@ -33,12 +35,32 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
     setActivePreset(preset.label);
     const result = predictTransaction(preset.values, policy);
     setPrediction(result);
+    appendSingleTransaction({
+      ...preset.values,
+      Time: preset.values.Time,
+      Amount: preset.values.Amount,
+      xgb_probability: result.fraud_probability,
+      anomaly_score: result.anomaly_score,
+      risk_level: result.risk_level,
+      action: result.recommended_action,
+      explanation: result.explanation
+    });
   };
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
     const result = predictTransaction(formData, policy);
     setPrediction(result);
+    appendSingleTransaction({
+      ...formData,
+      Time: formData.Time,
+      Amount: formData.Amount,
+      xgb_probability: result.fraud_probability,
+      anomaly_score: result.anomaly_score,
+      risk_level: result.risk_level,
+      action: result.recommended_action,
+      explanation: result.explanation
+    });
   };
 
   const handleReset = () => {
@@ -89,7 +111,7 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
 
   const riskStyle = prediction ? getRiskColor(prediction.risk_level) : getRiskColor('LOW');
 
-  // Key PCA features that have strongest correlation in Phase 1 analysis
+  // Key model features with high prediction contribution in model benchmarks
   const primaryVFeatures = ['V14', 'V17', 'V12', 'V10', 'V4', 'V3', 'V11', 'V7', 'V2', 'V16'];
   const otherVFeatures = Array.from({ length: 28 }, (_, i) => `V${i + 1}`).filter(f => !primaryVFeatures.includes(f));
 
@@ -100,9 +122,14 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Quick Test Scenarios
-            </span>
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
+                Simulation / Demo Scenarios
+              </span>
+              <span className="text-[10px] text-slate-500">
+                Preset parameter profiles for testing. Scenario labels are simulations, not model features.
+              </span>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {QUICK_PRESETS.map((preset, idx) => (
@@ -128,16 +155,18 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
         <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
             <div>
-              <h2 className="text-base font-semibold text-white">Transaction Features (30 Inputs)</h2>
+              <h2 className="text-base font-semibold text-white">
+                Transaction Features (Time, Amount, Anonymized features V1-V28)
+              </h2>
               <p className="text-xs text-slate-400">
-                Supply transaction timestamp, amount, and PCA components (V1-V28).
+                Supply Time (seconds elapsed), Amount, and Anonymized features V1-V28.
               </p>
             </div>
             <button
               type="button"
               onClick={handleReset}
               className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition"
-              title="Reset all inputs"
+              title="Reset all inputs to default"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Reset
@@ -149,7 +178,7 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-950/60 rounded-lg border border-slate-800/80">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Time (seconds elapsed: 0 – 172,800)
+                  Time (seconds elapsed)
                 </label>
                 <input
                   type="number"
@@ -161,7 +190,7 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Amount ($ USD)
+                  Amount
                 </label>
                 <input
                   type="number"
@@ -173,13 +202,13 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
               </div>
             </div>
 
-            {/* High-Impact PCA Features */}
+            {/* Top Model-Influential Features */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
-                  Top Influential PCA Components (High Correlation)
+                  Top Model-Influential Features
                 </span>
-                <span className="text-[11px] text-blue-400">Primary fraud drivers</span>
+                <span className="text-[11px] text-slate-400">Key model features</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {primaryVFeatures.map(feat => (
@@ -199,13 +228,13 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
               </div>
             </div>
 
-            {/* Remaining PCA Components Accordion/Grid */}
+            {/* Remaining Anonymized Features */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
-                  Remaining PCA Components (Orthogonal)
+                  Anonymized features V1-V28 (Remaining 18 Features)
                 </span>
-                <span className="text-[11px] text-slate-500">18 components</span>
+                <span className="text-[11px] text-slate-500">Orthogonal numerical components</span>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1">
                 {otherVFeatures.map(feat => (
@@ -231,7 +260,7 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
                 className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition"
               >
                 <Search className="w-4 h-4" />
-                <span>Evaluate Fraud Risk & Anomaly Score</span>
+                <span>Evaluate Signals & Apply Risk Policy</span>
               </button>
             </div>
           </form>
@@ -246,21 +275,91 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
                   <Activity className="w-4 h-4 text-blue-400" />
                   Engine Assessment
                 </h3>
-                <span className="text-[11px] font-mono text-slate-400">Two-Stage Policy</span>
+                <span className="text-[11px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                  Primary + Secondary Signal
+                </span>
               </div>
 
-              {/* Status and Action Banners */}
+              {/* 1. SEPARATE MODEL SIGNALS DISPLAY */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Primary Signal: XGBoost Fraud Probability */}
+                <div className="bg-slate-950/80 p-3.5 rounded-xl border border-blue-900/40 relative">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-blue-400">
+                      Primary Signal
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-500">Supervised</span>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-300">
+                    XGBoost Fraud Probability
+                  </div>
+                  <div className="text-2xl font-bold font-mono text-white mt-1">
+                    {(prediction.fraud_probability * 100).toFixed(2)}%
+                  </div>
+                  <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+                    Score: {prediction.fraud_probability.toFixed(5)}
+                  </div>
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2.5 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        prediction.fraud_probability >= policy.highThreshold
+                          ? 'bg-red-500'
+                          : prediction.fraud_probability >= policy.mediumThreshold
+                          ? 'bg-amber-500'
+                          : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(1, prediction.fraud_probability * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Secondary Signal: Isolation Forest Anomaly Score */}
+                <div className="bg-slate-950/80 p-3.5 rounded-xl border border-purple-900/40 relative">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-purple-400">
+                      Secondary Signal
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-500">Unsupervised</span>
+                  </div>
+                  <div className="text-xs font-semibold text-slate-300">
+                    Isolation Forest Anomaly Score
+                  </div>
+                  <div className="text-2xl font-bold font-mono text-purple-300 mt-1">
+                    {prediction.anomaly_score.toFixed(4)}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Exploratory anomaly reference: Top 2% (~+0.037)
+                  </div>
+                  {/* Indicator bar */}
+                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2.5 overflow-hidden">
+                    <div
+                      className="h-full bg-purple-500 transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.max(5, ((prediction.anomaly_score + 0.15) / 0.4) * 100))}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. RISK CLASSIFICATION & RECOMMENDED ACTION (DRIVEN BY XGBOOST PROBABILITY) */}
               <div className={`p-4 rounded-xl border ${riskStyle.bg} shadow-md ${riskStyle.glow} space-y-3`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-slate-300">
-                    Risk Classification
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${riskStyle.badge}`}>
+                  <div>
+                    <span className="text-xs uppercase tracking-wider font-semibold text-slate-300 block">
+                      Risk Classification
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      Driven by XGBoost fraud probability vs risk policy
+                    </span>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${riskStyle.badge}`}>
                     {prediction.risk_level} RISK
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
                   <div className="flex items-center gap-2">
                     {getActionIcon(prediction.recommended_action)}
                     <div>
@@ -271,87 +370,51 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-400">Primary Band</div>
-                    <div className="text-xs font-mono font-medium text-slate-200">
+                    <div className="text-xs text-slate-400">Policy Threshold Band</div>
+                    <div className="text-xs font-mono font-bold text-white">
                       {prediction.fraud_probability >= policy.criticalThreshold
-                        ? 'CRITICAL (≥ 0.90)'
+                        ? '≥ 0.90 → CRITICAL → BLOCK'
                         : prediction.fraud_probability >= policy.highThreshold
-                        ? 'HIGH (≥ 0.80)'
+                        ? '≥ 0.80 → HIGH → BLOCK'
                         : prediction.fraud_probability >= policy.mediumThreshold
-                        ? 'MEDIUM (≥ 0.60)'
-                        : 'LOW (< 0.60)'}
+                        ? '≥ 0.60 → MEDIUM → REVIEW'
+                        : '< 0.60 → LOW → APPROVE'}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Metric Breakdown Cards */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-xs text-slate-400 mb-1">Stage 1: Fraud Probability</div>
-                  <div className="text-2xl font-bold font-mono text-white">
-                    {(prediction.fraud_probability * 100).toFixed(2)}%
-                  </div>
-                  <div className="text-[11px] font-mono text-slate-500 mt-1">
-                    Raw: {prediction.fraud_probability.toFixed(5)}
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 ${
-                        prediction.fraud_probability >= 0.8
-                          ? 'bg-red-500'
-                          : prediction.fraud_probability >= 0.6
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
-                      }`}
-                      style={{ width: `${Math.min(100, Math.max(1, prediction.fraud_probability * 100))}%` }}
-                    />
-                  </div>
+              {/* Policy Mapping Reference Banner */}
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 text-[11px] space-y-1.5">
+                <span className="font-semibold text-slate-300 block">
+                  Reference Decision Policy:
+                </span>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-[10px] text-slate-400">
+                  <div>• Prob ≥ 0.90 → <strong className="text-red-400">CRITICAL → BLOCK</strong></div>
+                  <div>• Prob ≥ 0.80 → <strong className="text-orange-400">HIGH → BLOCK</strong></div>
+                  <div>• Prob ≥ 0.60 → <strong className="text-amber-400">MEDIUM → REVIEW</strong></div>
+                  <div>• Prob &lt; 0.60 → <strong className="text-emerald-400">LOW → APPROVE</strong></div>
                 </div>
-
-                <div className="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800">
-                  <div className="text-xs text-slate-400 mb-1">Stage 2: Anomaly Score</div>
-                  <div className={`text-2xl font-bold font-mono ${
-                    prediction.anomaly_score > policy.anomalyCutoff ? 'text-purple-400' : 'text-slate-200'
-                  }`}>
-                    {prediction.anomaly_score.toFixed(4)}
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-1">
-                    Cutoff: +{policy.anomalyCutoff.toFixed(4)}
-                  </div>
-                  {/* Anomaly indicator */}
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 ${
-                        prediction.anomaly_score > policy.anomalyCutoff ? 'bg-purple-500' : 'bg-blue-500'
-                      }`}
-                      style={{
-                        width: `${Math.min(100, Math.max(5, ((prediction.anomaly_score + 0.15) / 0.4) * 100))}%`
-                      }}
-                    />
-                  </div>
-                </div>
+                <p className="text-[10px] text-slate-500 pt-1 border-t border-slate-850">
+                  * Isolation Forest provides secondary anomaly context for investigation/review support and does not override the XGBoost decision.
+                </p>
               </div>
 
-              {/* Explanation Text */}
+              {/* Model Explanation */}
               <div className="bg-slate-950/50 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
                 <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-                  Model Explanation
+                  Model Decision Explanation
                 </span>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {prediction.explanation}
                 </p>
-                <p className="text-[11px] text-slate-500 italic pt-1">
-                  * Thresholds are DEMO / REFERENCE policy only — calibrated from hackathon validation set.
-                </p>
               </div>
 
-              {/* Influential Features Table */}
+              {/* Top Model-Influential Features */}
               {prediction.feature_impacts && prediction.feature_impacts.length > 0 && (
                 <div>
                   <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-                    Top Feature Contributions
+                    Top Model-Influential Features
                   </span>
                   <div className="space-y-1.5">
                     {prediction.feature_impacts.map(impact => (
@@ -361,19 +424,15 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-medium text-slate-200">{impact.feature}</span>
-                          <span className="text-slate-400 text-[11px]">val: {impact.value.toFixed(2)}</span>
+                          <span className="text-slate-400 text-[11px]">
+                            {impact.feature} contributed strongly to the model decision.
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[11px] px-1.5 py-0.5 rounded font-mono ${
-                              impact.direction === 'fraud'
-                                ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            }`}
-                          >
-                            {impact.direction === 'fraud' ? '↑ Risk' : '↓ Safe'}
+                          <span className="font-mono text-slate-400 text-[11px]">
+                            val: {impact.value.toFixed(2)}
                           </span>
-                          <span className="font-mono text-slate-300 text-[11px]">
+                          <span className="font-mono text-slate-300 text-[11px] px-1.5 py-0.5 rounded bg-slate-800">
                             imp: {impact.impact.toFixed(3)}
                           </span>
                         </div>

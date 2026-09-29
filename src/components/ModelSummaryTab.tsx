@@ -71,6 +71,7 @@ export const ModelSummaryTab: React.FC = () => {
               <tr>
                 <th className="py-2.5 px-3">Detector Model</th>
                 <th className="py-2.5 px-3">Role In System</th>
+                <th className="py-2.5 px-3 text-cyan-400">Benchmark Values (Acc / Prec)</th>
                 <th className="py-2.5 px-3">OOF PR-AUC</th>
                 <th className="py-2.5 px-3">OOF ROC-AUC</th>
                 <th className="py-2.5 px-3">Relative Gain</th>
@@ -80,7 +81,10 @@ export const ModelSummaryTab: React.FC = () => {
             <tbody className="divide-y divide-slate-850">
               <tr className="bg-blue-950/20">
                 <td className="py-2.5 px-3 font-semibold text-white">XGBoost (Hist Gradient Boosting)</td>
-                <td className="py-2.5 px-3 text-slate-300">Primary Classifier (Stage 1)</td>
+                <td className="py-2.5 px-3 text-slate-300">Primary Classifier (Primary Signal)</td>
+                <td className="py-2.5 px-3 font-mono font-medium">
+                  <span className="text-emerald-400 font-bold">99.95%</span> Acc &bull; <span className="text-cyan-400 font-bold">90.88%</span> Prec
+                </td>
                 <td className="py-2.5 px-3 font-mono font-bold text-emerald-400">0.8473</td>
                 <td className="py-2.5 px-3 font-mono text-slate-200">0.9801</td>
                 <td className="py-2.5 px-3 font-mono text-emerald-400 font-medium">+15.54%</td>
@@ -93,6 +97,9 @@ export const ModelSummaryTab: React.FC = () => {
               <tr>
                 <td className="py-2.5 px-3 font-medium text-slate-200">Logistic Regression Baseline</td>
                 <td className="py-2.5 px-3 text-slate-400">Linear Benchmark</td>
+                <td className="py-2.5 px-3 font-mono text-slate-400">
+                  <span className="text-slate-300">99.91%</span> Acc &bull; <span className="text-slate-300">86.20%</span> Prec
+                </td>
                 <td className="py-2.5 px-3 font-mono text-slate-300">0.7334</td>
                 <td className="py-2.5 px-3 font-mono text-slate-400">0.9829</td>
                 <td className="py-2.5 px-3 font-mono text-slate-500">Baseline</td>
@@ -104,7 +111,10 @@ export const ModelSummaryTab: React.FC = () => {
               </tr>
               <tr>
                 <td className="py-2.5 px-3 font-medium text-slate-200">Isolation Forest (Unsupervised)</td>
-                <td className="py-2.5 px-3 text-slate-300">Secondary Anomaly Signal (Stage 2)</td>
+                <td className="py-2.5 px-3 text-slate-300">Secondary Anomaly Context (Secondary Signal)</td>
+                <td className="py-2.5 px-3 font-mono text-slate-400">
+                  <span className="text-purple-400">98.00%</span> Acc &bull; <span className="text-purple-400">3.70%</span> Prec
+                </td>
                 <td className="py-2.5 px-3 font-mono text-slate-300">0.1534</td>
                 <td className="py-2.5 px-3 font-mono text-slate-300">0.9379</td>
                 <td className="py-2.5 px-3 font-mono text-slate-400">Complementary</td>
@@ -117,6 +127,9 @@ export const ModelSummaryTab: React.FC = () => {
               <tr>
                 <td className="py-2.5 px-3 font-medium text-slate-400">Temporal Surge / Density Signal</td>
                 <td className="py-2.5 px-3 text-slate-500">Volume Time-window Analysis</td>
+                <td className="py-2.5 px-3 font-mono text-slate-500">
+                  <span>99.82%</span> Acc &bull; <span className="text-red-400">0.17%</span> Prec
+                </td>
                 <td className="py-2.5 px-3 font-mono text-slate-500">~0.0015</td>
                 <td className="py-2.5 px-3 font-mono text-slate-500">–</td>
                 <td className="py-2.5 px-3 font-mono text-red-400">-99.8%</td>

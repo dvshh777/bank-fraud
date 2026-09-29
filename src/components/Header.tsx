@@ -22,11 +22,11 @@ export const Header: React.FC<HeaderProps> = ({ policy, modelLoaded }) => {
                   Sentinel Fraud Platform
                 </h1>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  Two-Stage Engine
+                  Primary + Secondary Signal
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Banking Fraud Detection • Stage 1: XGBoost (PR-AUC 0.8473) + Stage 2: Isolation Forest Anomaly
+                Banking Fraud Detection • Primary: XGBoost (PR-AUC 0.8473) • Secondary: Isolation Forest Anomaly Context
               </p>
             </div>
           </div>
@@ -42,8 +42,8 @@ export const Header: React.FC<HeaderProps> = ({ policy, modelLoaded }) => {
 
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300">
               <Layers className="w-3.5 h-3.5 text-purple-400" />
-              <span>Review Cutoff:</span>
-              <span className="font-mono text-purple-400 font-medium">+{policy.anomalyCutoff.toFixed(4)} (98th %)</span>
+              <span>Exploratory Anomaly Ref:</span>
+              <span className="font-mono text-purple-400 font-medium">Top 2%</span>
             </div>
 
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300">

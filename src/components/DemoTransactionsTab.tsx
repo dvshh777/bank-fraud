@@ -45,13 +45,13 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-base font-semibold text-white">Representative Demo Transactions</h2>
+            <h2 className="text-base font-semibold text-white">Simulation / Demo Scenarios</h2>
             <p className="text-xs text-slate-400">
-              Curated rows representing distinct points across the two-stage decision policy.
+              Curated simulation rows representing distinct operational test points across the risk policy.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Select Row:</span>
+            <span className="text-xs text-slate-400">Select Scenario:</span>
             <select
               value={selectedIdx}
               onChange={e => setSelectedIdx(Number(e.target.value))}
@@ -92,7 +92,7 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
                   {item.name}
                 </div>
                 <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                  Target: {item.expectedResult.action}
+                  Policy: {item.expectedResult.action}
                 </div>
               </button>
             );
@@ -107,7 +107,7 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div>
               <span className="text-[11px] uppercase tracking-wider font-semibold text-blue-400 block">
-                Scenario #{selectedIdx + 1}
+                Simulation Scenario #{selectedIdx + 1}
               </span>
               <h3 className="text-base font-bold text-white">{selectedItem.name}</h3>
             </div>
@@ -123,30 +123,30 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
 
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800">
+              <span className="text-[9px] uppercase tracking-wider font-bold text-blue-400 block">Primary Signal</span>
               <div className="text-[11px] text-slate-400">XGBoost Probability</div>
               <div className="text-xl font-bold font-mono text-white mt-0.5">
                 {(prediction.fraud_probability * 100).toFixed(2)}%
               </div>
               <div className="text-[10px] text-slate-500 mt-1">
-                Raw: {prediction.fraud_probability.toFixed(5)}
+                Score: {prediction.fraud_probability.toFixed(5)}
               </div>
             </div>
 
             <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800">
+              <span className="text-[9px] uppercase tracking-wider font-bold text-purple-400 block">Secondary Signal</span>
               <div className="text-[11px] text-slate-400">Isolation Anomaly Score</div>
-              <div className={`text-xl font-bold font-mono mt-0.5 ${
-                prediction.anomaly_score > policy.anomalyCutoff ? 'text-purple-400' : 'text-slate-200'
-              }`}>
+              <div className="text-xl font-bold font-mono mt-0.5 text-purple-300">
                 {prediction.anomaly_score.toFixed(4)}
               </div>
-              <div className="text-[10px] text-slate-500 mt-1">
-                Cutoff: +{policy.anomalyCutoff.toFixed(4)}
+              <div className="text-[10px] text-slate-400 mt-1">
+                Exploratory ref: ~+0.037
               </div>
             </div>
           </div>
 
           <div className="space-y-2 p-3 bg-slate-950/40 rounded-xl border border-slate-800">
-            <div className="text-xs font-semibold text-slate-300">Policy Explanation:</div>
+            <div className="text-xs font-semibold text-slate-300">Decision & Anomaly Context:</div>
             <p className="text-xs text-slate-300 leading-relaxed">
               {prediction.explanation}
             </p>
@@ -167,8 +167,8 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
         <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div>
-              <h3 className="text-base font-semibold text-white">Full Feature Vector (30 Values)</h3>
-              <p className="text-xs text-slate-400">All features passed to Stage 1 & Stage 2 models.</p>
+              <h3 className="text-base font-semibold text-white">Feature Input Vector (30 Values)</h3>
+              <p className="text-xs text-slate-400">Time (seconds elapsed), Amount, and Anonymized features V1-V28.</p>
             </div>
             <div className="text-xs font-mono text-slate-400">
               Amount: <span className="text-white font-bold">${selectedItem.features.Amount.toFixed(2)}</span>

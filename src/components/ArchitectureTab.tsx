@@ -21,10 +21,10 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
           <div>
             <h2 className="text-base font-semibold text-white flex items-center gap-2">
               <GitBranch className="w-5 h-5 text-blue-400" />
-              Two-Stage Decision Architecture
+              Primary + Secondary Signal Architecture
             </h2>
             <p className="text-xs text-slate-400">
-              Interactive structural overview of the primary discriminator and secondary anomaly guardrail.
+              Structural overview of the primary XGBoost decision pipeline and secondary Isolation Forest anomaly context.
             </p>
           </div>
           <span className="text-[11px] px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 font-medium">
@@ -37,20 +37,20 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
           {/* Node 1: Incoming Transaction */}
           <div className="w-full max-w-md bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-center shadow-md">
             <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-              Step 1: Input Vector
+              Input Vector
             </span>
             <span className="text-sm font-semibold text-white">
-              Incoming Transaction (Time, Amount, V1–V28)
+              Time (seconds elapsed), Amount, Anonymized features V1–V28
             </span>
           </div>
 
           <ArrowDown className="w-4 h-4 text-slate-500" />
 
-          {/* Node 2: Stage 1 Model */}
+          {/* Node 2: Primary Detector */}
           <div className="w-full max-w-md bg-blue-950/30 p-3.5 rounded-xl border border-blue-900/60 text-center shadow-md">
             <div className="flex items-center justify-center gap-1.5 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-0.5">
               <Cpu className="w-4 h-4" />
-              Stage 1: Primary Detector
+              Primary Signal: Supervised Detector
             </div>
             <div className="text-sm font-bold text-white">XGBoost Classifier (300 Hist Trees)</div>
             <div className="text-xs text-blue-300/80 font-mono mt-0.5">Outputs: Fraud Probability [0.00 – 1.00]</div>
@@ -75,8 +75,8 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               </div>
             </div>
 
-            {/* MEDIUM BAND (Two-Stage Branch) */}
-            <div className="bg-slate-950 p-3 rounded-xl border border-amber-900/40 text-center space-y-2 sm:col-span-1 ring-1 ring-amber-500/30">
+            {/* MEDIUM BAND */}
+            <div className="bg-slate-950 p-3 rounded-xl border border-amber-900/40 text-center space-y-2 sm:col-span-1">
               <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
                 MEDIUM BAND
               </span>
@@ -84,10 +84,6 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
                 {(policy.mediumThreshold * 100).toFixed(0)}% – {(policy.highThreshold * 100).toFixed(0)}%
               </div>
               <ArrowDown className="w-3.5 h-3.5 text-amber-500 mx-auto" />
-              <div className="bg-purple-950/40 p-1.5 rounded border border-purple-800/40 text-[10px] text-purple-300 font-mono">
-                <span className="font-semibold block text-purple-200">Stage 2: Isolation Forest</span>
-                Score &gt; +{policy.anomalyCutoff.toFixed(4)}
-              </div>
               <div className="py-1 px-2 rounded bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30 flex items-center justify-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" />
                 REVIEW
@@ -124,11 +120,19 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               </div>
             </div>
           </div>
-        </div>
 
-        <p className="text-xs text-slate-400 text-center italic">
-          * Isolation Forest does <strong>not</strong> distort the XGBoost probability; it acts strictly as an auxiliary routing filter for transactions in the MEDIUM band.
-        </p>
+          {/* Secondary Context Box */}
+          <div className="w-full max-w-2xl bg-purple-950/20 border border-purple-800/40 rounded-xl p-3.5 text-center mt-3">
+            <div className="flex items-center justify-center gap-1.5 text-purple-400 text-xs font-semibold uppercase tracking-wider mb-1">
+              <Layers className="w-4 h-4" />
+              Secondary Signal: Isolation Forest Anomaly Context
+            </div>
+            <p className="text-xs text-purple-200/90 leading-relaxed">
+              Provides unsupervised anomaly scores for human analysts during manual investigation and review support.
+              Isolation Forest does <strong>not</strong> override, arbitrate, average, or replace the primary XGBoost decision.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Interactive Policy Thresholds Configurator */}
@@ -137,19 +141,28 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
           <div>
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
               <Sliders className="w-4 h-4 text-blue-400" />
-              Adjust Reference Policy Thresholds
+              Adjust Decision Policy Thresholds
             </h3>
             <p className="text-xs text-slate-400">
-              Dynamically modify the cutoff thresholds across all tabs without model retraining.
+              Modify the XGBoost decision policy thresholds without model retraining.
             </p>
           </div>
-          <button
-            onClick={handleResetDefaults}
-            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition px-2.5 py-1 rounded bg-slate-800"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Reset to Reference Defaults
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => onUpdatePolicy({ criticalThreshold: 0.98, highThreshold: 0.95, mediumThreshold: 0.50, anomalyCutoff: policy.anomalyCutoff })}
+              className="text-xs px-2.5 py-1 rounded bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 border border-blue-800/60 transition"
+              title="Keeps borderline/suspect transactions in Review to prevent false alarms from blocking legitimate customers"
+            >
+              Review-First Policy (Minimize False Alarms)
+            </button>
+            <button
+              onClick={handleResetDefaults}
+              className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition px-2.5 py-1 rounded bg-slate-800"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset Defaults
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -169,7 +182,7 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               onChange={e => onUpdatePolicy({ ...policy, criticalThreshold: parseFloat(e.target.value) })}
               className="w-full accent-red-500"
             />
-            <span className="text-[10px] text-slate-500 block">Default: 90% (Instant BLOCK)</span>
+            <span className="text-[10px] text-slate-500 block">Default: ≥ 0.90 (BLOCK)</span>
           </div>
 
           <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -188,7 +201,7 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               onChange={e => onUpdatePolicy({ ...policy, highThreshold: parseFloat(e.target.value) })}
               className="w-full accent-orange-500"
             />
-            <span className="text-[10px] text-slate-500 block">Default: 80% (Automated BLOCK)</span>
+            <span className="text-[10px] text-slate-500 block">Default: ≥ 0.80 (BLOCK)</span>
           </div>
 
           <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
@@ -207,12 +220,12 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               onChange={e => onUpdatePolicy({ ...policy, mediumThreshold: parseFloat(e.target.value) })}
               className="w-full accent-amber-500"
             />
-            <span className="text-[10px] text-slate-500 block">Default: 60% (Secondary REVIEW)</span>
+            <span className="text-[10px] text-slate-500 block">Default: ≥ 0.60 (REVIEW)</span>
           </div>
 
           <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Anomaly Review Cutoff:</span>
+              <span className="text-slate-400">Exploratory Anomaly Ref:</span>
               <span className="font-mono font-bold text-purple-400">
                 +{policy.anomalyCutoff.toFixed(4)}
               </span>
@@ -226,7 +239,7 @@ export const ArchitectureTab: React.FC<Props> = ({ policy, onUpdatePolicy }) => 
               onChange={e => onUpdatePolicy({ ...policy, anomalyCutoff: parseFloat(e.target.value) })}
               className="w-full accent-purple-500"
             />
-            <span className="text-[10px] text-slate-500 block">Default: +0.0369 (98th percentile)</span>
+            <span className="text-[10px] text-slate-500 block">Exploratory reference only (~Top 2%)</span>
           </div>
         </div>
       </div>

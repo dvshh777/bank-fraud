@@ -3,9 +3,9 @@ import { DemoTransactionItem, TransactionData } from '../types';
 export const DEMO_TRANSACTIONS: DemoTransactionItem[] = [
   {
     id: 'demo-low',
-    name: 'Row #1: Everyday Coffee Purchase',
+    name: 'Simulation Scenario 1: Baseline Low Probability',
     category: 'LOW',
-    description: 'Typical normal retail transaction. PCA values cluster near 0, standard low retail amount, minimal deviation.',
+    description: 'Simulation scenario representing low-probability transaction. Features V1-V28 remain near baseline with low amount, resulting in APPROVE.',
     features: {
       Time: 406.0,
       Amount: 14.50,
@@ -20,58 +20,58 @@ export const DEMO_TRANSACTIONS: DemoTransactionItem[] = [
       risk: 'LOW',
       action: 'APPROVE',
       expectedProb: '< 0.01%',
-      anomalyStatus: 'Normal (-0.10)'
+      anomalyStatus: 'Normal reference (-0.10)'
     }
   },
   {
     id: 'demo-med-review',
-    name: 'Row #2: Borderline Secondary Review',
+    name: 'Simulation Scenario 2: Moderate Probability (Review Band)',
     category: 'MEDIUM',
-    description: 'Transaction with moderate negative deviations on V10 and V12. Primary XGBoost probability falls into the 60-80% MEDIUM band, triggering secondary anomaly triage.',
+    description: 'Simulation scenario with moderate shifts in model-influential features. Primary XGBoost probability falls into the 0.60–0.80 MEDIUM band (~68.7%), routing to REVIEW.',
     features: {
       Time: 52140.0,
-      Amount: 245.00,
-      V1: -1.85, V2: 1.12, V3: -1.45, V4: 1.82, V5: -0.95,
-      V6: -0.72, V7: -1.35, V8: 0.88, V9: -1.15, V10: -2.45,
-      V11: 1.65, V12: -2.35, V13: 0.12, V14: -2.85, V15: -0.45,
-      V16: -1.25, V17: -1.85, V18: -0.65, V19: 0.75, V20: 0.32,
-      V21: 0.42, V22: -0.15, V23: -0.18, V24: -0.22, V25: 0.45,
-      V26: 0.25, V27: 0.18, V28: -0.08
+      Amount: 145.00,
+      V1: -0.85, V2: 0.42, V3: -0.65, V4: 0.80, V5: -0.35,
+      V6: -0.22, V7: -0.45, V8: 0.18, V9: -0.55, V10: -1.80,
+      V11: 0.65, V12: -0.75, V13: 0.12, V14: -2.30, V15: -0.15,
+      V16: -0.35, V17: -0.65, V18: -0.25, V19: 0.35, V20: 0.12,
+      V21: 0.15, V22: -0.05, V23: -0.08, V24: -0.12, V25: 0.25,
+      V26: 0.12, V27: 0.08, V28: -0.02
     },
     expectedResult: {
       risk: 'MEDIUM',
       action: 'REVIEW',
-      expectedProb: '~60-75%',
-      anomalyStatus: 'Elevated anomaly check'
+      expectedProb: '~68.7%',
+      anomalyStatus: 'Secondary context for review'
     }
   },
   {
     id: 'demo-anomaly-review',
-    name: 'Row #3: Outlier Review (High Isolation Score)',
+    name: 'Simulation Scenario 3: Elevated Anomaly Context',
     category: 'REVIEW',
-    description: 'Large purchase amount with elevated distance in PCA space. Anomaly score exceeds 98th percentile cutoff (+0.0369), flagged for compliance verification.',
+    description: 'Simulation scenario with higher amount and geometric distance in V feature space, providing secondary anomaly context for review.',
     features: {
       Time: 86450.0,
       Amount: 1420.00,
-      V1: 0.85, V2: -2.15, V3: 0.42, V4: -0.85, V5: -1.65,
-      V6: 1.45, V7: -1.15, V8: 0.35, V9: -0.45, V10: 1.15,
-      V11: 0.65, V12: -0.85, V13: 1.25, V14: -1.95, V15: -0.15,
-      V16: -0.45, V17: -0.95, V18: 0.45, V19: -0.85, V20: 0.95,
-      V21: 0.35, V22: 0.42, V23: -0.48, V24: -0.65, V25: 0.15,
+      V1: 0.25, V2: -0.85, V3: 0.42, V4: 0.80, V5: -0.65,
+      V6: 0.45, V7: -0.35, V8: 0.25, V9: -0.45, V10: -1.80,
+      V11: 0.65, V12: -0.85, V13: 0.45, V14: -2.30, V15: -0.15,
+      V16: -0.45, V17: -0.65, V18: 0.25, V19: -0.35, V20: 3.50,
+      V21: 2.50, V22: -2.00, V23: -0.48, V24: -0.25, V25: 0.15,
       V26: -0.25, V27: 0.08, V28: 0.12
     },
     expectedResult: {
       risk: 'MEDIUM',
       action: 'REVIEW',
-      expectedProb: '~62%',
-      anomalyStatus: 'Exceeds cutoff (> +0.0369)'
+      expectedProb: '~64.6%',
+      anomalyStatus: 'Elevated anomaly context'
     }
   },
   {
     id: 'demo-high',
-    name: 'Row #4: High-Risk Sybil Pattern',
+    name: 'Simulation Scenario 4: High Fraud Probability Pattern',
     category: 'HIGH',
-    description: 'Distinctive fraud signature with severe negative shifts across V14, V17, and V12. Probability > 80% warrants automated blocking.',
+    description: 'Simulation scenario with strong negative shifts across model-influential features V14, V17, and V12. Primary XGBoost probability > 0.80 triggers automated BLOCK.',
     features: {
       Time: 71200.0,
       Amount: 99.99,
@@ -86,14 +86,14 @@ export const DEMO_TRANSACTIONS: DemoTransactionItem[] = [
       risk: 'HIGH',
       action: 'BLOCK',
       expectedProb: '~85-89%',
-      anomalyStatus: 'High (+0.08)'
+      anomalyStatus: 'High anomaly context'
     }
   },
   {
     id: 'demo-critical',
-    name: 'Row #5: Critical Account Takeover Attack',
+    name: 'Simulation Scenario 5: Critical Fraud Probability Pattern',
     category: 'CRITICAL',
-    description: 'Extreme fraud vector. V14 = -7.2, V17 = -6.8, V10 = -5.8, V12 = -6.4. Model probability is near 100% (CRITICAL risk), immediate BLOCK.',
+    description: 'Simulation scenario with severe negative deviations on V14, V17, V10, and V12. Primary XGBoost probability >= 0.90 triggers automated BLOCK.',
     features: {
       Time: 94250.0,
       Amount: 180.50,
@@ -108,7 +108,7 @@ export const DEMO_TRANSACTIONS: DemoTransactionItem[] = [
       risk: 'CRITICAL',
       action: 'BLOCK',
       expectedProb: '> 99.5%',
-      anomalyStatus: 'Critical (+0.14)'
+      anomalyStatus: 'Critical anomaly context'
     }
   }
 ];
@@ -116,11 +116,11 @@ export const DEMO_TRANSACTIONS: DemoTransactionItem[] = [
 // Presets for quick-fill in Single Transaction Tab
 export const QUICK_PRESETS = [
   {
-    label: 'Standard Grocery ($32.40)',
+    label: 'Simulation Scenario: Baseline Values',
     values: DEMO_TRANSACTIONS[0].features
   },
   {
-    label: 'Large Electronics ($850.00)',
+    label: 'Simulation Scenario: Higher Amount ($850.00)',
     values: {
       ...DEMO_TRANSACTIONS[0].features,
       Amount: 850.00,
@@ -129,53 +129,54 @@ export const QUICK_PRESETS = [
     }
   },
   {
-    label: 'Medium Risk Review Candidate',
+    label: 'Simulation Scenario: Moderate Signal (Review)',
     values: DEMO_TRANSACTIONS[1].features
   },
   {
-    label: 'High Risk Outlier',
+    label: 'Simulation Scenario: Elevated Anomaly Ref',
     values: DEMO_TRANSACTIONS[2].features
   },
   {
-    label: 'Confirmed Fraud Attack (Critical)',
+    label: 'Simulation Scenario: Critical Probability',
     values: DEMO_TRANSACTIONS[4].features
   }
 ];
 
-// Generate sample batch CSV content
+// Generate calibrated sample batch CSV content covering APPROVE, REVIEW, and BLOCK
 export function generateSampleCsvContent(): string {
   const headers = ['Time', ...Array.from({ length: 28 }, (_, i) => `V${i + 1}`), 'Amount', 'Class'];
   const rows: string[] = [headers.join(',')];
 
-  // Include our demo transactions
-  for (let i = 0; i < DEMO_TRANSACTIONS.length; i++) {
-    const item = DEMO_TRANSACTIONS[i];
-    const rowVals = [
-      item.features.Time,
-      ...Array.from({ length: 28 }, (_, k) => (item.features[`V${k + 1}`] ?? 0).toFixed(4)),
-      item.features.Amount.toFixed(2),
-      item.category === 'CRITICAL' || item.category === 'HIGH' ? '1' : '0'
-    ];
-    rows.push(rowVals.join(','));
-  }
+  const calibratedDataset: Array<{ Time: number; Amount: number; Class: number; features?: Record<string, number> }> = [
+    // 1-5: APPROVE (Low Risk, Class 0)
+    { Time: 406.0, Amount: 14.50, Class: 0, features: { V1: -0.92, V2: 0.18, V3: 1.55, V4: -0.22, V5: 0.38, V7: 0.42, V11: 0.41, V14: -0.25 } },
+    { Time: 1240.0, Amount: 4.85, Class: 0, features: { V1: 0.15, V2: -0.05, V3: 0.85, V4: -0.10, V5: 0.20, V7: 0.18, V11: 0.18, V14: -0.12 } },
+    { Time: 5800.0, Amount: 62.30, Class: 0, features: { V1: -0.25, V2: 0.45, V3: -0.15, V4: 0.12, V5: 0.10, V7: 0.22, V11: 0.25, V14: -0.20 } },
+    { Time: 14200.0, Amount: 12.99, Class: 0, features: { V1: 0.05, V2: -0.12, V3: 0.35, V4: -0.05, V5: 0.18, V7: 0.15, V11: 0.12, V14: -0.15 } },
+    { Time: 28900.0, Amount: 45.00, Class: 0, features: { V1: -0.45, V2: 0.22, V3: 0.65, V4: -0.18, V5: 0.25, V7: 0.30, V11: 0.30, V14: -0.18 } },
 
-  // Add 10 additional varied transactions
-  for (let j = 1; j <= 10; j++) {
-    const isFraud = j === 7 || j === 9;
-    const time = 10000 + j * 5400;
-    const amount = isFraud ? (80 + j * 15) : (15 + (j % 4) * 22.5);
+    // 6-8: REVIEW (Medium Risk ~64-69%, Review Actions)
+    { Time: 52140.0, Amount: 145.00, Class: 0, features: { V4: 0.80, V10: -1.80, V14: -2.30, V1: -0.85, V2: 0.42, V3: -0.65 } },
+    { Time: 58900.0, Amount: 195.00, Class: 1, features: { V4: 0.80, V10: -1.80, V14: -2.30, V17: -0.80, V1: -0.80, V2: 0.38 } },
+    { Time: 86450.0, Amount: 1420.00, Class: 0, features: { V4: 0.80, V10: -1.80, V14: -2.30, V20: 3.50, V21: 2.50, V22: -2.00 } },
+
+    // 9-10: BLOCK (High Risk ~83-88%, Class 1)
+    { Time: 71200.0, Amount: 99.99, Class: 1, features: { V4: 1.00, V10: -1.50, V12: -2.20, V14: -3.70, V17: -1.95 } },
+    { Time: 75400.0, Amount: 150.00, Class: 1, features: { V4: 1.10, V10: -1.60, V12: -2.30, V14: -3.80, V17: -2.05 } },
+
+    // 11-13: BLOCK (Critical Risk > 99%, Class 1)
+    { Time: 89000.0, Amount: 280.00, Class: 1, features: { V4: 3.00, V10: -3.50, V12: -4.00, V14: -5.50, V17: -4.50 } },
+    { Time: 94250.0, Amount: 180.50, Class: 1, features: { V1: -6.25, V2: 4.85, V3: -7.23, V4: 4.95, V10: -5.81, V12: -6.45, V14: -7.15, V17: -6.84 } },
+    { Time: 98100.0, Amount: 310.00, Class: 1, features: { V4: 3.50, V10: -4.20, V12: -4.80, V14: -6.20, V17: -5.10 } }
+  ];
+
+  for (const item of calibratedDataset) {
     const vVals = Array.from({ length: 28 }, (_, k) => {
-      if (isFraud) {
-        if (k === 13) return (-4.5 - Math.random() * 2).toFixed(4); // V14
-        if (k === 16) return (-4.0 - Math.random() * 2).toFixed(4); // V17
-        if (k === 11) return (-3.5 - Math.random() * 2).toFixed(4); // V12
-        if (k === 9) return (-3.0 - Math.random() * 2).toFixed(4);  // V10
-        if (k === 3) return (2.5 + Math.random() * 1.5).toFixed(4); // V4
-      }
-      return ((Math.random() - 0.5) * 1.2).toFixed(4);
+      const vKey = `V${k + 1}`;
+      const val = item.features?.[vKey] ?? 0;
+      return val.toFixed(4);
     });
-
-    rows.push([time, ...vVals, amount.toFixed(2), isFraud ? '1' : '0'].join(','));
+    rows.push([item.Time.toFixed(0), ...vVals, item.Amount.toFixed(2), item.Class.toString()].join(','));
   }
 
   return rows.join('\n');

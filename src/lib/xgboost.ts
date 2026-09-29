@@ -212,7 +212,7 @@ export function predictTransaction(
 ): PredictionResult {
   const vec = transactionToVector(transaction);
 
-  // Stage 1: XGBoost fraud probability
+  // Primary Signal: XGBoost fraud probability
   let prob: number;
   if (cachedModel) {
     prob = predictXGBoostTrees(vec, cachedModel);
@@ -220,27 +220,27 @@ export function predictTransaction(
     prob = fallbackPredict(vec);
   }
 
-  // Stage 2: Isolation Forest anomaly score
+  // Secondary Signal: Isolation Forest anomaly score (investigation & review context only)
   const anomalyScore = computeAnomalyScore(vec);
 
-  // Risk level determination based on policy configuration
+  // Decision policy strictly driven by XGBoost fraud probability:
+  // >= 0.90 → CRITICAL → BLOCK
+  // >= 0.80 → HIGH → BLOCK
+  // >= 0.60 → MEDIUM → REVIEW
+  // < 0.60 → LOW → APPROVE
+  // Isolation Forest is secondary context only and does not override, arbitrate, or replace the XGBoost decision.
   let risk: RiskLevel;
   if (prob >= policy.criticalThreshold) {
     risk = 'CRITICAL';
   } else if (prob >= policy.highThreshold) {
     risk = 'HIGH';
   } else if (prob >= policy.mediumThreshold) {
-    // In MEDIUM band, check secondary anomaly signal
-    if (anomalyScore > policy.anomalyCutoff) {
-      risk = 'MEDIUM'; // Flagged for review with elevated anomaly
-    } else {
-      risk = 'MEDIUM';
-    }
+    risk = 'MEDIUM';
   } else {
     risk = 'LOW';
   }
 
-  // Recommended Action
+  // Recommended Action driven by XGBoost risk classification
   let action: RecommendedAction;
   if (risk === 'CRITICAL' || risk === 'HIGH') {
     action = 'BLOCK';
@@ -255,23 +255,22 @@ export function predictTransaction(
   const topFeatures = featureImpacts.slice(0, 3).map(f => f.feature);
 
   const explanations: string[] = [];
-  if (prob >= policy.highThreshold) {
-    explanations.push(`High model-estimated fraud probability (${(prob * 100).toFixed(2)}%) exceeding risk threshold.`);
+  if (prob >= policy.criticalThreshold) {
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) meets CRITICAL policy threshold (≥ ${(policy.criticalThreshold * 100).toFixed(0)}%), triggering automated BLOCK.`);
+  } else if (prob >= policy.highThreshold) {
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) meets HIGH policy threshold (≥ ${(policy.highThreshold * 100).toFixed(0)}%), triggering automated BLOCK.`);
   } else if (prob >= policy.mediumThreshold) {
-    explanations.push(`Moderate fraud probability (${(prob * 100).toFixed(2)}%) placed in secondary evaluation band.`);
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) falls into MEDIUM policy band (≥ ${(policy.mediumThreshold * 100).toFixed(0)}%), routed to REVIEW.`);
   } else {
-    explanations.push(`Low model-estimated fraud probability (${(prob * 100).toFixed(4)}%) consistent with legitimate pattern.`);
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(4)}%) is within LOW policy band (< ${(policy.mediumThreshold * 100).toFixed(0)}%), resulting in APPROVE.`);
   }
 
-  if (anomalyScore > policy.anomalyCutoff) {
-    explanations.push(`Anomaly score (${anomalyScore.toFixed(4)}) exceeds 98th percentile cutoff (+${policy.anomalyCutoff.toFixed(4)}), indicating unusual geometric topology.`);
-  } else {
-    explanations.push(`Anomaly score (${anomalyScore.toFixed(4)}) is within expected distribution.`);
-  }
+  // Isolation Forest secondary context (explicitly marked as exploratory anomaly reference, not a production cutoff)
+  explanations.push(`Isolation Forest secondary anomaly score is ${anomalyScore.toFixed(4)} (exploratory anomaly reference: ~+${policy.anomalyCutoff.toFixed(4)}).`);
 
   if (topFeatures.length > 0) {
-    const featStr = featureImpacts.slice(0, 3).map(f => `${f.feature} (${f.value.toFixed(2)})`).join(', ');
-    explanations.push(`Key influences: ${featStr}.`);
+    const topFeat = topFeatures[0];
+    explanations.push(`${topFeat} contributed strongly to the model decision.`);
   }
 
   return {
