@@ -1,0 +1,31 @@
+Hybrid Signal Threshold Evaluation
+===================================
+
+--- hybrid_A ---
+Top 0% (cutoff=96.7090) -> Precision=0.3700, Recall=0.2151, F1=0.2721, TP=74, FP=126, TN=198894, FN=270, Flagged=200 (0.10%)
+Top 0% (cutoff=95.0854) -> Precision=0.2204, Recall=0.3198, F1=0.2610, TP=110, FP=389, TN=198631, FN=234, Flagged=499 (0.25%)
+Top 0% (cutoff=93.5448) -> Precision=0.1354, Recall=0.3924, F1=0.2013, TP=135, FP=862, TN=198158, FN=209, Flagged=997 (0.50%)
+Top 1% (cutoff=91.4090) -> Precision=0.0898, Recall=0.5203, F1=0.1531, TP=179, FP=1815, TN=197205, FN=165, Flagged=1994 (1.00%)
+Top 2% (cutoff=88.9351) -> Precision=0.0760, Recall=0.8808, F1=0.1399, TP=303, FP=3685, TN=195335, FN=41, Flagged=3988 (2.00%)
+
+--- hybrid_B ---
+Top 0% (cutoff=97.0774) -> Precision=0.3650, Recall=0.2122, F1=0.2684, TP=73, FP=127, TN=198893, FN=271, Flagged=200 (0.10%)
+Top 0% (cutoff=95.6879) -> Precision=0.2084, Recall=0.3023, F1=0.2467, TP=104, FP=395, TN=198625, FN=240, Flagged=499 (0.25%)
+Top 0% (cutoff=94.2674) -> Precision=0.1320, Recall=0.3837, F1=0.1964, TP=132, FP=868, TN=198152, FN=212, Flagged=1000 (0.50%)
+Top 1% (cutoff=92.4982) -> Precision=0.0807, Recall=0.4680, F1=0.1377, TP=161, FP=1833, TN=197187, FN=183, Flagged=1994 (1.00%)
+Top 2% (cutoff=90.3152) -> Precision=0.0579, Recall=0.6715, F1=0.1066, TP=231, FP=3757, TN=195263, FN=113, Flagged=3988 (2.00%)
+
+--- hybrid_C ---
+Top 0% (cutoff=96.1260) -> Precision=0.2550, Recall=0.1483, F1=0.1875, TP=51, FP=149, TN=198871, FN=293, Flagged=200 (0.10%)
+Top 0% (cutoff=94.2211) -> Precision=0.1543, Recall=0.2238, F1=0.1827, TP=77, FP=422, TN=198598, FN=267, Flagged=499 (0.25%)
+Top 0% (cutoff=92.7128) -> Precision=0.0923, Recall=0.2674, F1=0.1372, TP=92, FP=905, TN=198115, FN=252, Flagged=997 (0.50%)
+Top 1% (cutoff=90.6102) -> Precision=0.0577, Recall=0.3343, F1=0.0984, TP=115, FP=1879, TN=197141, FN=229, Flagged=1994 (1.00%)
+Top 2% (cutoff=87.9943) -> Precision=0.0344, Recall=0.3983, F1=0.0633, TP=137, FP=3851, TN=195169, FN=207, Flagged=3988 (2.00%)
+
+--- hybrid_D ---
+Top 0% (cutoff=98.1118) -> Precision=0.4550, Recall=0.2645, F1=0.3346, TP=91, FP=109, TN=198911, FN=253, Flagged=200 (0.10%)
+Top 0% (cutoff=97.0990) -> Precision=0.2625, Recall=0.3808, F1=0.3108, TP=131, FP=368, TN=198652, FN=213, Flagged=499 (0.25%)
+Top 0% (cutoff=96.2036) -> Precision=0.1595, Recall=0.4622, F1=0.2371, TP=159, FP=838, TN=198182, FN=185, Flagged=997 (0.50%)
+Top 1% (cutoff=95.0908) -> Precision=0.1254, Recall=0.7267, F1=0.2139, TP=250, FP=1744, TN=197276, FN=94, Flagged=1994 (1.00%)
+Top 2% (cutoff=93.7217) -> Precision=0.0780, Recall=0.9041, F1=0.1436, TP=311, FP=3677, TN=195343, FN=33, Flagged=3988 (2.00%)
+

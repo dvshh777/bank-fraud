@@ -1,0 +1,28 @@
+Final Fraud Risk Engine – DEMO Summary
+========================================
+
+Total transactions evaluated: 2000
+
+Risk level distribution:
+  LOW: 1994
+  CRITICAL: 6
+
+Action distribution:
+  APPROVE: 1994
+  BLOCK: 6
+
+Fraud counts by risk level:
+  CRITICAL: 6
+
+Confusion matrix (binary view – BLOCK/REVIEW vs APPROVE):
+  TP: 6   FP: 0
+  FN: 0   TN: 1994
+
+Precision: 1.0000
+Recall: 1.0000
+
+Example transactions per risk level (illustrative only):
+  CRITICAL: prob=1.0000, anomaly=-0.0050, action=BLOCK
+  LOW: prob=0.0001, anomaly=0.0770, action=APPROVE
+
+End of DEMO summary.

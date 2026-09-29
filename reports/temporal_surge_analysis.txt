@@ -1,0 +1,19 @@
+Temporal Density Signal Analysis
+================================
+
+Window-wise PR-AUC / ROC-AUC:
+  60s : PR-AUC=0.0014, ROC-AUC=0.3967
+  300s : PR-AUC=0.0015, ROC-AUC=0.4043
+  900s : PR-AUC=0.0015, ROC-AUC=0.4008
+  1800s : PR-AUC=0.0014, ROC-AUC=0.3981
+
+Best window selected: 900 seconds (based on highest PR‑AUC)
+
+Fraud rate by percentile buckets (best signal)
+---------------------------------------------------
+0-50%: 0.2059%
+50-75%: 0.1124%
+75-90%: 0.1862%
+90-95%: 0.1408%
+95-99%: 0.1506%
+99-100%: 0.0499%

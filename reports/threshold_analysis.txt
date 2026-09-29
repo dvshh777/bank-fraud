@@ -1,0 +1,74 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: THRESHOLD ANALYSIS REPORT
+================================================================================
+
+Source Predictions: reports/baseline_oof_predictions.csv
+Total Transactions: 199,364 (Legitimate: 199,020, Fraud: 344)
+OOF PR-AUC (Average Precision): 0.7334
+OOF ROC-AUC: 0.9829
+
+--------------------------------------------------------------------------------
+COMPLETE THRESHOLD EVALUATION TABLE
+--------------------------------------------------------------------------------
+ threshold  precision   recall       f1  true_positives  false_positives  true_negatives  false_negatives  frauds_caught  frauds_missed  transactions_flagged  flagged_percentage
+      0.01   0.002443 0.997093 0.004874             343           140070           58950                1            343              1                140413           70.430469
+      0.02   0.003133 0.997093 0.006247             343           109133           89887                1            343              1                109476           54.912622
+      0.03   0.003797 0.994186 0.007566             342            89723          109297                2            342              2                 90065           45.176160
+      0.05   0.005043 0.982558 0.010034             338            66689          132331                6            338              6                 67027           33.620413
+      0.07   0.006261 0.976744 0.012442             336            53332          145688                8            336              8                 53668           26.919604
+      0.10   0.008351 0.970930 0.016559             334            39662          159358               10            334             10                 39996           20.061797
+      0.15   0.012555 0.962209 0.024786             331            26034          172986               13            331             13                 26365           13.224554
+      0.20   0.017653 0.950581 0.034662             327            18197          180823               17            327             17                 18524            9.291547
+      0.25   0.023416 0.938953 0.045692             323            13471          185549               21            323             21                 13794            6.919002
+      0.30   0.030223 0.930233 0.058544             320            10268          188752               24            320             24                 10588            5.310889
+      0.40   0.046381 0.912791 0.088277             314             6456          192564               30            314             30                  6770            3.395799
+      0.50   0.068043 0.909884 0.126618             313             4287          194733               31            313             31                  4600            2.307337
+      0.60   0.093722 0.898256 0.169734             309             2988          196032               35            309             35                  3297            1.653759
+      0.70   0.125153 0.889535 0.219433             306             2139          196881               38            306             38                  2445            1.226400
+      0.80   0.164871 0.889535 0.278182             306             1550          197470               38            306             38                  1856            0.930960
+      0.90   0.219853 0.869186 0.350939             299             1061          197959               45            299             45                  1360            0.682169
+      0.95   0.317047 0.848837 0.461660             292              629          198391               52            292             52                   921            0.461969
+      0.99   0.563745 0.822674 0.669031             283              219          198801               61            283             61                   502            0.251801
+
+--------------------------------------------------------------------------------
+KEY OPERATIONAL THRESHOLD IDENTIFICATIONS
+--------------------------------------------------------------------------------
+1. Highest F1 Threshold:
+   - Threshold: 0.99 | F1: 0.6690 | Prec: 0.5637 | Rec: 0.8227
+   - Frauds Caught: 283 / 344 | Flagged: 502 (0.25%)
+
+2. At least 80% Recall with Highest Precision:
+   - Threshold: 0.99 | Rec: 0.8227 | Prec: 0.5637 | F1: 0.6690
+   - Frauds Caught: 283 / 344 | Flagged: 502 (0.25%)
+
+3. At least 90% Recall with Highest Precision:
+   - Threshold: 0.50 | Rec: 0.9099 | Prec: 0.0680 | F1: 0.1266
+   - Frauds Caught: 313 / 344 | Flagged: 4,600 (2.31%)
+
+4. At least 95% Recall with Highest Precision:
+   - Threshold: 0.20 | Rec: 0.9506 | Prec: 0.0177 | F1: 0.0347
+   - Frauds Caught: 327 / 344 | Flagged: 18,524 (9.29%)
+
+5. Threshold Producing ~1% Flagged Transactions:
+   - Threshold: 0.80 | Flagged: 1,856 (0.93%)
+   - Prec: 0.1649 | Rec: 0.8895 | Frauds Caught: 306
+
+6. Threshold Producing ~2% Flagged Transactions:
+   - Threshold: 0.50 | Flagged: 4,600 (2.31%)
+   - Prec: 0.0680 | Rec: 0.9099 | Frauds Caught: 313
+
+7. Threshold Producing ~5% Flagged Transactions:
+   - Threshold: 0.30 | Flagged: 10,588 (5.31%)
+   - Prec: 0.0302 | Rec: 0.9302 | Frauds Caught: 320
+
+--------------------------------------------------------------------------------
+POLICY & TRADEOFF ANALYSIS
+--------------------------------------------------------------------------------
+  * No single threshold is universally optimal.
+  * In fraud detection, the threshold represents an explicit business tradeoff between:
+    1. False Negatives (Frauds missed -> direct financial loss for bank/merchant)
+    2. False Positives (Legitimate transactions flagged -> manual review costs, customer friction)
+  * For instance, setting threshold=0.99 yields highest F1 (0.6690) and 56.4% precision with only
+    502 flagged transactions, but allows 61 frauds to pass undetected.
+  * Conversely, setting threshold=0.20 captures 95% of all frauds (327 caught), but flags 18,524 transactions
+    (9.29% of all traffic), requiring high operational review bandwidth.

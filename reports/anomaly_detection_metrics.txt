@@ -1,0 +1,71 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: ISOLATION FOREST ANOMALY DETECTION REPORT
+================================================================================
+
+1. MODEL ARCHITECTURE & CONFIGURATION
+--------------------------------------------------------------------------------
+  - Model Type         : IsolationForest (sklearn.ensemble)
+  - n_estimators       : 200
+  - contamination      : 'auto'
+  - random_state       : 42
+  - n_jobs             : -1
+  - Features (30)      : Time, V1-V28, Amount (strictly unsupervised, Class excluded)
+  - Score Definition   : -decision_function(X) (higher = more anomalous)
+
+2. GLOBAL ANOMALY RANKING PERFORMANCE
+--------------------------------------------------------------------------------
+  - PR-AUC (Average Precision) : 0.1534
+  - ROC-AUC                    : 0.9379
+  - Score Min / Max            : -0.1553 / +0.2581
+  - Score Mean / Median        : -0.0977 / -0.1070
+
+3. ANOMALY SCORE DISTRIBUTION BY SUBSET
+--------------------------------------------------------------------------------
+                              Group   Count    Mean Std Dev     Min  25th %  Median  75th %     Max
+   XGBoost Missed Frauds (FN, n=65)      65 -0.0472  0.0797 -0.1402 -0.1055 -0.0676 -0.0013 +0.2132
+  XGBoost Caught Frauds (TP, n=279)     279 +0.1087  0.0721 -0.0829 +0.0627 +0.1124 +0.1743 +0.2252
+Legitimate Transactions (n=199,020) 199,020 -0.0980  0.0421 -0.1553 -0.1267 -0.1071 -0.0829 +0.2581
+
+4. DETECTION OF XGBOOST MISSED FRAUDS (FN, n=65 at t=0.80)
+--------------------------------------------------------------------------------
+  - Top 0.1% (Cutoff >= +0.1773, Flagged = 200):
+      * Missed Frauds Caught : 2 / 65 (3.08%)
+      * Caught Frauds Retained: 66 / 279 (23.66%)
+      * Total Frauds In Top  : 68 / 344 (Precision: 34.00%)
+  - Top 0.5% (Cutoff >= +0.1063, Flagged = 997):
+      * Missed Frauds Caught : 3 / 65 (4.62%)
+      * Caught Frauds Retained: 144 / 279 (51.61%)
+      * Total Frauds In Top  : 147 / 344 (Precision: 14.74%)
+  - Top 1.0% (Cutoff >= +0.0754, Flagged = 1,994):
+      * Missed Frauds Caught : 7 / 65 (10.77%)
+      * Caught Frauds Retained: 187 / 279 (67.03%)
+      * Total Frauds In Top  : 194 / 344 (Precision: 9.73%)
+  - Top 2.0% (Cutoff >= +0.0369, Flagged = 3,988):
+      * Missed Frauds Caught : 10 / 65 (15.38%)
+      * Caught Frauds Retained: 221 / 279 (79.21%)
+      * Total Frauds In Top  : 231 / 344 (Precision: 5.79%)
+  - Top 5.0% (Cutoff >= -0.0188, Flagged = 9,969):
+      * Missed Frauds Caught : 18 / 65 (27.69%)
+      * Caught Frauds Retained: 269 / 279 (96.42%)
+      * Total Frauds In Top  : 287 / 344 (Precision: 2.88%)
+
+--------------------------------------------------------------------------------
+5. KEY OBSERVATIONS & ARCHITECTURAL INSIGHTS
+--------------------------------------------------------------------------------
+  * Unsupervised Signal vs Supervised Discriminator:
+    - IsolationForest achieves ROC-AUC of 0.9379, demonstrating strong general outlier separation,
+      but achieves low PR-AUC (0.1534) due to high false-alarm rates among extreme legitimate outliers.
+  * Nature of XGBoost False Negatives:
+    - Frauds caught by XGBoost (TPs) have a high mean anomaly score (+0.1087),
+      whereas missed frauds (FNs) have a negative mean anomaly score (-0.0472),
+      confirming that missed frauds mimic normal transaction topology in PCA space.
+  * Complementary Recovery Potential:
+    - The top 5% most anomalous transactions (9,969 tx) recover 18 of the 65 missed frauds (27.69%),
+      highlighting a viable candidate signal for hybrid tier-based review routing.
+
+--------------------------------------------------------------------------------
+6. GOVERNANCE & POLICY NOTICE
+--------------------------------------------------------------------------------
+  * This is an EXPLORATORY anomaly-detection experiment.
+  * NO production threshold has been selected.
+  * No hybrid risk engine has been deployed.

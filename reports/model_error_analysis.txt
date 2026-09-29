@@ -1,0 +1,61 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: SUPERVISED MODEL & ERROR ANALYSIS REPORT
+================================================================================
+
+1. PROBABILITY-RANKING BENCHMARK (OUT-OF-FOLD)
+--------------------------------------------------------------------------------
+  - Logistic Regression PR-AUC : 0.7334
+  - XGBoost Baseline PR-AUC    : 0.8473
+  - Absolute PR-AUC Difference : +0.1140
+  - Relative PR-AUC Improvement: +15.54%
+  - Logistic Regression ROC-AUC: 0.9829
+  - XGBoost Baseline ROC-AUC   : 0.9801
+  - Absolute ROC-AUC Difference: -0.0028
+
+2. XGBOOST FALSE NEGATIVE ANALYSIS (THRESHOLD = 0.80)
+--------------------------------------------------------------------------------
+  - Missed Frauds Count : 65 / 344 (18.90% missed)
+  - Frauds Caught       : 279 / 344 (81.10% recall)
+  - Amount Stats ($)    : Mean=$128.84, Median=$12.31, Std=$204.36, Min=$0.00, Max=$829.41
+  - Amount Percentiles  : 25%=$1.18, 75%=$187.11
+  - Time Stats (seconds): Mean=87272.2s, Median=76876.0s, Std=48093.1s, Min=472s, Max=166,883s
+  - Temporal Clustering : Highest FN count in Bin 4 (12 FNs, [51,838s - 69,117s]) and Bin 9 (9 FNs, [138,234s - 155,513s]).
+                          Highest miss rate in Bin 10 (44.44%, 8/18 missed) and Bin 7 (33.33%, 3/9 missed).
+
+3. XGBOOST FALSE POSITIVE ANALYSIS (THRESHOLD = 0.80)
+--------------------------------------------------------------------------------
+  - False Positive Count: 28 / 199,020 (0.0141% false positive rate)
+  - Total Flagged       : 307 transactions (Precision: 90.88%)
+  - Amount Stats ($)    : Mean=$47.62, Median=$1.26, Std=$103.55, Min=$0.00, Max=$508.00
+  - Amount Percentiles  : 25%=$1.00, 75%=$79.39
+  - Time Stats (seconds): Mean=73797.9s, Median=74266.5s, Std=46956.9s, Min=347s, Max=167,846s
+
+4. PREDICTED PROBABILITY QUANTILES BY ACTUAL CLASS
+--------------------------------------------------------------------------------
+  - Actual Fraud (Class=1):
+      * Min:    1.327532e-05
+      * 25%:    0.994095
+      * Median: 0.999745
+      * 75%:    0.999881
+      * Max:    0.999981
+  - Legitimate (Class=0):
+      * Min:    5.424461e-07
+      * 25%:    1.837803e-05
+      * Median: 4.953143e-05
+      * 75%:    1.553437e-04
+      * Max:    0.999900
+
+5. DUPLICATE ROW OCCURRENCE & BEHAVIOR INSIDE OOF
+--------------------------------------------------------------------------------
+  - Internal Duplicate Rows in train.csv: 1,027 total (591 redundant instances).
+      * Missed frauds (FN) among internal duplicates: 0
+      * False alarms (FP) among internal duplicates : 0
+      * XGBoost achieved 100% accuracy on all internal duplicate rows at t=0.80.
+  - Cross-Dataset Shared Rows in train.csv: 313 rows.
+      * Missed frauds (FN) among cross-dataset rows: 0
+      * False alarms (FP) among cross-dataset rows : 1
+
+6. GOVERNANCE & POLICY NOTICE
+--------------------------------------------------------------------------------
+  * NO final production threshold has been selected.
+  * Threshold selection must be calibrated according to organizational cost parameters.

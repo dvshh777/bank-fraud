@@ -1,0 +1,6 @@
+{
+  "name": "Sentinel Fraud Platform",
+  "description": "Two-stage banking fraud detection platform featuring primary XGBoost classifier, secondary Isolation Forest anomaly detection, and interactive risk policy engine.",
+  "prompt": "Two-stage banking fraud detection platform featuring primary XGBoost classifier, secondary Isolation Forest anomaly detection, and interactive risk policy engine.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

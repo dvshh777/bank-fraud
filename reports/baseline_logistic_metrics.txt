@@ -1,0 +1,50 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: BASELINE LOGISTIC REGRESSION METRICS
+================================================================================
+
+Model Configuration:
+  - Architecture       : Pipeline(StandardScaler -> LogisticRegression)
+  - Class Weight       : 'balanced'
+  - Solver             : lbfgs (max_iter=1000, random_state=42)
+  - Features (30)      : Time, V1-V28, Amount
+  - Validation         : StratifiedKFold (n_splits=5, shuffle=True, random_state=42)
+  - Decision Threshold : 0.50 (untuned initial baseline)
+
+--------------------------------------------------------------------------------
+FOLD-BY-FOLD DETAILED RESULTS
+--------------------------------------------------------------------------------
+Fold  PR-AUC    ROC-AUC   Precision   Recall    F1        TP    FP      TN      FN    
+1     0.7036    0.9844    0.0650      0.8841    0.1210    61    878     38926   8     
+2     0.6657    0.9715    0.0674      0.8841    0.1253    61    844     38960   8     
+3     0.7111    0.9874    0.0721      0.8986    0.1335    62    798     39006   7     
+4     0.7448    0.9802    0.0701      0.8986    0.1301    62    822     38982   7     
+5     0.8497    0.9942    0.0662      0.9853    0.1241    67    945     38859   1     
+
+--------------------------------------------------------------------------------
+AGGREGATE 5-FOLD CROSS-VALIDATION SUMMARY
+--------------------------------------------------------------------------------
+PR-AUC (Average Precision) : 0.7350 +/- 0.0700 (Overall OOF: 0.7333)
+ROC-AUC                    : 0.9835 +/- 0.0084 (Overall OOF: 0.9829)
+Precision (threshold=0.50) : 0.0682 +/- 0.0029 (Overall OOF: 0.0680)
+Recall    (threshold=0.50) : 0.9101 +/- 0.0427 (Overall OOF: 0.9099)
+F1-Score  (threshold=0.50) : 0.1268 +/- 0.0050 (Overall OOF: 0.1266)
+
+--------------------------------------------------------------------------------
+OVERALL OUT-OF-FOLD CONFUSION MATRIX (threshold=0.50)
+--------------------------------------------------------------------------------
+  - True Positives  (TP) : 313 / 344 frauds (90.99% recall)
+  - False Positives (FP) : 4,287 legitimate transactions incorrectly flagged
+  - True Negatives  (TN) : 194,733 legitimate transactions correctly cleared
+  - False Negatives (FN) : 31 frauds missed
+
+--------------------------------------------------------------------------------
+OBSERVATIONS & BASELINE INSIGHTS
+--------------------------------------------------------------------------------
+1. High Discriminative Ranking Ability:
+   - Mean ROC-AUC of 0.9835 and mean PR-AUC of 0.7350 demonstrate strong
+     linear separability for fraud ranking, even without non-linear feature interactions.
+2. Threshold Impact of class_weight='balanced':
+   - Using class_weight='balanced' with a default 0.50 threshold forces high sensitivity (mean recall = 90.7%),
+     at the cost of precision (6.82%), yielding ~4,287 false alarms.
+   - Threshold tuning on the PR curve or non-linear modeling in future steps will be necessary
+     to calibrate precision and recall to optimal operational levels.

@@ -1,0 +1,44 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.streamlit/secrets.toml
+
+# Large local-only artifacts
+data/train.csv
+reports/hybrid_signal_scores.csv
+
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+dist/
+build/
+
+# Large datasets
+*.csv
+*.tsv
+*.parquet
+*.jsonl
+
+# ML models
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.onnx
+*.h5
+*.keras
+
+# IDE
+.vscode/
+
+# Logs
+*.log

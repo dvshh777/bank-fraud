@@ -1,0 +1,56 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: XGBOOST BASELINE METRICS REPORT
+================================================================================
+
+Model Configuration:
+  - Model Type         : XGBClassifier
+  - n_estimators       : 300
+  - max_depth          : 5
+  - learning_rate      : 0.05
+  - subsample          : 0.8
+  - colsample_bytree   : 0.8
+  - min_child_weight   : 3
+  - objective          : binary:logistic
+  - eval_metric        : aucpr
+  - tree_method        : hist
+  - random_state       : 42
+  - n_jobs             : -1
+  - Features (30)      : Time, V1-V28, Amount
+  - Validation         : StratifiedKFold (n_splits=5, shuffle=True, random_state=42)
+
+--------------------------------------------------------------------------------
+FOLD-BY-FOLD DETAILED RESULTS
+--------------------------------------------------------------------------------
+Fold  scale_pos_weight  PR-AUC      ROC-AUC   
+1     578.9673          0.8739      0.9839    
+2     578.9673          0.8089      0.9701    
+3     578.9673          0.8199      0.9825    
+4     578.9673          0.8442      0.9722    
+5     576.8696          0.9002      0.9960    
+
+--------------------------------------------------------------------------------
+AGGREGATE 5-FOLD CROSS-VALIDATION SUMMARY
+--------------------------------------------------------------------------------
+PR-AUC (Average Precision) : 0.8494 +/- 0.0378 (Overall OOF: 0.8473)
+ROC-AUC                    : 0.9809 +/- 0.0104 (Overall OOF: 0.9801)
+
+--------------------------------------------------------------------------------
+COMPARATIVE BENCHMARK: XGBOOST VS LOGISTIC REGRESSION BASELINE
+--------------------------------------------------------------------------------
+  - Logistic Regression PR-AUC : 0.7334
+  - XGBoost PR-AUC             : 0.8473
+  - Absolute PR-AUC Difference : +0.1140
+  - Relative PR-AUC Improvement: +15.54%
+  --------------------------------------------------
+  - Logistic Regression ROC-AUC: 0.9829
+  - XGBoost ROC-AUC            : 0.9801
+  - Absolute ROC-AUC Difference: -0.0028
+
+--------------------------------------------------------------------------------
+ARCHITECTURAL TAKEAWAYS
+--------------------------------------------------------------------------------
+1. Substantial Precision-Recall Gain:
+   - XGBoost captures non-linear interactions across PCA components (such as V17, V14, V12, V10),
+     boosting PR-AUC by +0.1140 (+15.54% relative improvement).
+2. Robust Generalization Across Folds:
+   - Standard deviation across folds is low (±0.0378), confirming stable convergence.

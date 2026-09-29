@@ -1,0 +1,68 @@
+================================================================================
+BANKING FRAUD DETECTION SYSTEM: XGBOOST THRESHOLD ANALYSIS REPORT
+================================================================================
+
+Source Predictions: reports/xgboost_oof_predictions.csv
+Total Transactions: 199,364 (Legitimate: 199,020, Fraud: 344)
+OOF PR-AUC (Average Precision): 0.8473
+OOF ROC-AUC: 0.9801
+
+--------------------------------------------------------------------------------
+COMPLETE THRESHOLD EVALUATION TABLE
+--------------------------------------------------------------------------------
+ threshold  precision   recall       f1  true_positives  false_positives  true_negatives  false_negatives  frauds_caught  frauds_missed  transactions_flagged  flagged_percentage
+      0.01   0.146988 0.886628 0.252170             305             1770          197250               39            305             39                  2075            1.040810
+      0.02   0.236122 0.877907 0.372150             302              977          198043               42            302             42                  1279            0.641540
+      0.03   0.306205 0.875000 0.453655             301              682          198338               43            301             43                   983            0.493068
+      0.05   0.402703 0.866279 0.549815             298              442          198578               46            298             46                   740            0.371180
+      0.07   0.469937 0.863372 0.608607             297              335          198685               47            297             47                   632            0.317008
+      0.10   0.546296 0.857558 0.667421             295              245          198775               49            295             49                   540            0.270861
+      0.15   0.644592 0.848837 0.732748             292              161          198859               52            292             52                   453            0.227223
+      0.20   0.707317 0.843023 0.769231             290              120          198900               54            290             54                   410            0.205654
+      0.25   0.747423 0.843023 0.792350             290               98          198922               54            290             54                   388            0.194619
+      0.30   0.789617 0.840116 0.814085             289               77          198943               55            289             55                   366            0.183584
+      0.40   0.822350 0.834302 0.828283             287               62          198958               57            287             57                   349            0.175057
+      0.50   0.845697 0.828488 0.837004             285               52          198968               59            285             59                   337            0.169038
+      0.60   0.868098 0.822674 0.844776             283               43          198977               61            283             61                   326            0.163520
+      0.70   0.892405 0.819767 0.854545             282               34          198986               62            282             62                   316            0.158504
+      0.80   0.908795 0.811047 0.857143             279               28          198992               65            279             65                   307            0.153990
+      0.90   0.925676 0.796512 0.856250             274               22          198998               70            274             70                   296            0.148472
+      0.95   0.934256 0.784884 0.853081             270               19          199001               74            270             74                   289            0.144961
+      0.99   0.949091 0.758721 0.843296             261               14          199006               83            261             83                   275            0.137939
+
+--------------------------------------------------------------------------------
+KEY OPERATIONAL THRESHOLD IDENTIFICATIONS
+--------------------------------------------------------------------------------
+1. Highest F1 Threshold:
+   - Threshold: 0.80 | F1: 0.8571 | Prec: 0.9088 | Rec: 0.8110
+   - Frauds Caught: 279 / 344 | Flagged: 307 (0.15%)
+
+2. Highest Precision among Thresholds with Recall >= 80%:
+   - Threshold: 0.80 | Rec: 0.8110 | Prec: 0.9088 | F1: 0.8571
+   - Frauds Caught: 279 / 344 | Flagged: 307 (0.15%)
+
+3. Highest Precision among Thresholds with Recall >= 90%:
+   - Not available in evaluated candidate list (Thresholds 0.01 - 0.99).
+   - Max recall in list is 88.66% at threshold=0.01. Reaching >=90% requires threshold <= 0.0055.
+
+4. Highest Precision among Thresholds with Recall >= 95%:
+   - Not available in evaluated candidate list (Thresholds 0.01 - 0.99).
+   - Reaching >=95% recall requires threshold <= 0.00036.
+
+5. Threshold Closest to Approximately 1% Flagged:
+   - Threshold: 0.01 | Flagged: 2,075 (1.04%)
+   - Prec: 0.1470 | Rec: 0.8866 | Frauds Caught: 305
+
+6. Threshold Closest to Approximately 2% Flagged:
+   - Threshold: 0.01 | Flagged: 2,075 (1.04%)
+   - Prec: 0.1470 | Rec: 0.8866 | Frauds Caught: 305
+
+7. Threshold Closest to Approximately 5% Flagged:
+   - Threshold: 0.01 | Flagged: 2,075 (1.04%)
+   - Prec: 0.1470 | Rec: 0.8866 | Frauds Caught: 305
+
+--------------------------------------------------------------------------------
+GOVERNANCE & POLICY NOTICE
+--------------------------------------------------------------------------------
+  * NO final production threshold has been selected.
+  * Operating thresholds represent engineering trade-offs that must align with bank risk policies.

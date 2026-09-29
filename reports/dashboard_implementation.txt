@@ -1,0 +1,9 @@
+# Dashboard implementation notes
+
+- Implemented a lightweight Streamlit dashboard (`src/app.py`).
+- Reuses existing risk‑engine functions from `src/11_fraud_risk_engine.py`.
+- Loads pre‑trained XGBoost and Isolation Forest models from `models/`.
+- Provides sections for single‑transaction analysis, demo transactions, batch CSV scoring, dataset/model summary, architecture explanation, and a peak‑load visualisation.
+- All thresholds are explicitly labelled as **DEMO / REFERENCE POLICY**.
+- No retraining, no SMOTE, no temporal‑density scoring, and no invented metadata.
+- Basic input validation and error handling added.
