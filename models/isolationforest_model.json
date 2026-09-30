@@ -1,0 +1,53 @@
+{
+  "model_type": "IsolationForest",
+  "version": "1.0.0",
+  "n_estimators": 100,
+  "max_samples": 256,
+  "contamination": 0.02,
+  "baseline_metrics": {
+    "legitimate_mean": -0.0980,
+    "legitimate_std": 0.0421,
+    "caught_fraud_mean": 0.1087,
+    "missed_fraud_mean": -0.0472,
+    "anomaly_cutoff_98th": 0.0369,
+    "min_score": -0.1553,
+    "max_score": 0.2581
+  },
+  "feature_importance_weights": {
+    "V1": 0.05,
+    "V2": 0.08,
+    "V3": 0.09,
+    "V4": 0.12,
+    "V5": 0.08,
+    "V6": 0.06,
+    "V7": 0.07,
+    "V8": 0.06,
+    "V9": 0.06,
+    "V10": 0.14,
+    "V11": 0.08,
+    "V12": 0.15,
+    "V13": 0.05,
+    "V14": 0.16,
+    "V15": 0.06,
+    "V16": 0.08,
+    "V17": 0.18,
+    "V18": 0.06,
+    "V19": 0.05,
+    "V20": 0.05,
+    "V21": 0.05,
+    "V22": 0.04,
+    "V23": 0.04,
+    "V24": 0.04,
+    "V25": 0.03,
+    "V26": 0.03,
+    "V27": 0.03,
+    "V28": 0.03
+  },
+  "amount_anomaly_parameters": {
+    "threshold_amount": 500,
+    "log_scale_factor": 1.0,
+    "max_amount_contribution": 2.5
+  },
+  "calibration_offset": -0.1070,
+  "calibration_scale": 0.11
+}

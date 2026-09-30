@@ -3,6 +3,7 @@ import { TransactionData, PredictionResult, PolicyConfig } from '../types';
 import { predictTransaction, FEATURE_COLS } from '../lib/xgboost';
 import { QUICK_PRESETS } from '../lib/demoData';
 import { useDataContext } from '../context/DataContext';
+import { formatStandardTime, formatClockTime, parseSecondsToTime } from '../lib/timeUtils';
 import { Search, CheckCircle2, AlertTriangle, ShieldX, Sparkles, RotateCcw, Activity, Info } from 'lucide-react';
 
 interface Props {
@@ -187,6 +188,10 @@ export const SingleTransactionTab: React.FC<Props> = ({ policy }) => {
                   onChange={e => handleInputChange('Time', e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-blue-500"
                 />
+                <div className="text-[11px] text-cyan-400 font-mono mt-1.5 flex items-center justify-between">
+                  <span>Standard Clock: <strong>{formatStandardTime(Number(formData.Time) || 0)}</strong></span>
+                  <span className="text-slate-500">({formatClockTime(Number(formData.Time) || 0, '24h')})</span>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">

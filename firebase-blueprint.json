@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile with locked role assignment (admin or employee)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "employee"] },
+        "department": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "email", "name", "role"]
+    },
+    "CsvHistory": {
+      "title": "CSV Analysis History",
+      "description": "Institutional CSV batch analysis history entries accessible across Admin and Employee terminals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userName": { "type": "string" },
+        "datasetName": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "totalCount": { "type": "number" },
+        "fraudCount": { "type": "number" },
+        "approvedCount": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "blockedCount": { "type": "number" },
+        "policyUsed": { "type": "object" },
+        "rows": { "type": "array" }
+      },
+      "required": ["id", "datasetName", "timestamp", "createdAt", "totalCount", "rows"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile records with role lock"
+    },
+    "/csv_history/{historyId}": {
+      "schema": "CsvHistory",
+      "description": "Shared institutional CSV batch analysis history database"
+    },
+    "/users/{userId}/csv_history/{historyId}": {
+      "schema": "CsvHistory",
+      "description": "Per-user CSV analysis history entries"
+    }
+  }
+}

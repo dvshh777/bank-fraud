@@ -3,6 +3,8 @@ import { PolicyConfig, BatchResultRow, RiskLevel, RecommendedAction, Transaction
 import { FEATURE_COLS, predictTransaction } from '../lib/xgboost';
 import { generateSampleCsvContent } from '../lib/demoData';
 import { useDataContext } from '../context/DataContext';
+import { formatStandardTime, formatClockTime } from '../lib/timeUtils';
+import { TransactionDetailModal } from './TransactionDetailModal';
 import {
   Upload,
   Download,
@@ -14,7 +16,8 @@ import {
   ClipboardList,
   Sparkles,
   RotateCcw,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react';
 
 interface Props {
@@ -30,7 +33,9 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
   const [scoredRows, setScoredRows] = useState<BatchResultRow[]>(contextRows);
   const [filterAction, setFilterAction] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [selectedDetailRow, setSelectedDetailRow] = useState<BatchResultRow | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [showPasteBox, setShowPasteBox] = useState<boolean>(false);
   const [pastedText, setPastedText] = useState<string>('');
@@ -322,20 +327,22 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
     BLOCK: scoredRows.filter(r => r.action === 'BLOCK').length,
   };
 
-  // Filtering & Pagination
-  const filteredRows = scoredRows.filter(r => {
-    if (filterAction !== 'ALL' && r.action !== filterAction) return false;
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      return (
-        r.risk_level.toLowerCase().includes(term) ||
-        r.action.toLowerCase().includes(term) ||
-        r.Amount.toString().includes(term) ||
-        r.explanation.toLowerCase().includes(term)
-      );
-    }
-    return true;
-  });
+  // Filtering, Time Sorting & Pagination
+  const filteredRows = scoredRows
+    .filter(r => {
+      if (filterAction !== 'ALL' && r.action !== filterAction) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return (
+          r.risk_level.toLowerCase().includes(term) ||
+          r.action.toLowerCase().includes(term) ||
+          r.Amount.toString().includes(term) ||
+          r.explanation.toLowerCase().includes(term)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => sortDirection === 'asc' ? a.Time - b.Time : b.Time - a.Time);
 
   const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
   const paginatedRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -483,9 +490,9 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
                   e.stopPropagation();
                   handleDownloadSample();
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200 underline"
+                className="text-xs text-cyan-400 hover:text-cyan-300 underline font-medium"
               >
-                Download CSV template
+                Download sample_test.csv template
               </button>
             </div>
           </div>
@@ -712,7 +719,16 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
               <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase font-mono text-[10px]">
                 <tr>
                   <th className="py-2.5 px-3">#</th>
-                  <th className="py-2.5 px-3">Time</th>
+                  <th className="py-2.5 px-3">
+                    <button
+                      onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                      className="flex items-center gap-1 hover:text-white transition uppercase font-mono text-[10px]"
+                      title="Sort by Time"
+                    >
+                      <span>Time</span>
+                      <span className="text-blue-400 font-bold">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                    </button>
+                  </th>
                   <th className="py-2.5 px-3">Amount</th>
                   <th className="py-2.5 px-3">Fraud Prob</th>
                   <th className="py-2.5 px-3">Anomaly</th>
@@ -720,15 +736,24 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
                   <th className="py-2.5 px-3">Action</th>
                   {scoredRows[0]?.Class !== undefined && <th className="py-2.5 px-3">True Class</th>}
                   <th className="py-2.5 px-3">Explanation</th>
+                  <th className="py-2.5 px-3 text-right">Inspect</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-850">
                 {paginatedRows.map((row, idx) => {
                   const globalIdx = (currentPage - 1) * pageSize + idx + 1;
                   return (
-                    <tr key={idx} className="hover:bg-slate-800/40 transition">
+                    <tr
+                      key={idx}
+                      onClick={() => setSelectedDetailRow(row)}
+                      className="hover:bg-blue-950/30 cursor-pointer transition group"
+                      title="Click to inspect all features V1 to V28 and anomaly drivers"
+                    >
                       <td className="py-2 px-3 font-mono text-slate-500">{globalIdx}</td>
-                      <td className="py-2 px-3 font-mono text-slate-300">{row.Time.toFixed(0)}s</td>
+                      <td className="py-2 px-3 font-mono text-slate-300">
+                        <div className="font-semibold text-slate-200 group-hover:text-blue-300 transition">{formatClockTime(row.Time)}</div>
+                        <div className="text-[10px] text-slate-500">T+{row.Time.toFixed(0)}s</div>
+                      </td>
                       <td className="py-2 px-3 font-mono font-medium text-white">${row.Amount.toFixed(2)}</td>
                       <td className="py-2 px-3 font-mono">
                         <span className={row.xgb_probability > 0.8 ? 'text-red-400 font-bold' : row.xgb_probability > 0.5 ? 'text-amber-400' : 'text-slate-300'}>
@@ -798,6 +823,20 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
                       <td className="py-2 px-3 text-slate-300 max-w-xs truncate" title={row.explanation}>
                         {row.explanation}
                       </td>
+                      <td className="py-2 px-3 text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDetailRow(row);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white font-medium text-[11px] transition inline-flex items-center gap-1 border border-blue-500/30 shadow-sm"
+                          title="Inspect V1-V28 and anomaly drivers"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span>V1-V28</span>
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -831,6 +870,13 @@ export const BatchCsvTab: React.FC<Props> = ({ policy }) => {
           )}
         </div>
       )}
+
+      {/* Transaction Deep Dive & V1-V28 Inspector Modal */}
+      <TransactionDetailModal
+        isOpen={!!selectedDetailRow}
+        transaction={selectedDetailRow}
+        onClose={() => setSelectedDetailRow(null)}
+      />
     </div>
   );
 };

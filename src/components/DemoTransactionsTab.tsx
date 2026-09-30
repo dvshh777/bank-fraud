@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PolicyConfig, DemoTransactionItem } from '../types';
 import { DEMO_TRANSACTIONS } from '../lib/demoData';
 import { predictTransaction } from '../lib/xgboost';
+import { formatClockTime } from '../lib/timeUtils';
 import { CheckCircle2, AlertTriangle, ShieldX, ArrowRight, Layers, Tag, Eye } from 'lucide-react';
 
 interface Props {
@@ -178,9 +179,10 @@ export const DemoTransactionsTab: React.FC<Props> = ({ policy, onLoadIntoCustomF
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-96 overflow-y-auto pr-1">
             <div className="bg-slate-950/80 p-2 rounded-lg border border-slate-800">
               <span className="text-[10px] font-mono font-medium text-slate-400 block">Time</span>
-              <span className="text-xs font-mono font-semibold text-blue-400">
-                {selectedItem.features.Time.toFixed(1)}s
+              <span className="text-xs font-mono font-semibold text-blue-400 block">
+                {formatClockTime(selectedItem.features.Time)}
               </span>
+              <span className="text-[9px] text-slate-500 font-mono">T+{selectedItem.features.Time.toFixed(0)}s</span>
             </div>
             <div className="bg-slate-950/80 p-2 rounded-lg border border-slate-800">
               <span className="text-[10px] font-mono font-medium text-slate-400 block">Amount</span>

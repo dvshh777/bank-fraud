@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test document
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // Shared institutional CSV history collection
+    match /csv_history/{historyId} {
+      allow read, write: if true;
+    }
+
+    // User workspace documents & history subcollections
+    match /users/{userId} {
+      allow read, write: if true;
+
+      match /csv_history/{historyId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}

@@ -20,12 +20,15 @@ import {
   Check,
   Upload,
   PlusCircle,
-  FileText
+  FileText,
+  Award
 } from 'lucide-react';
 import { PolicyConfig, BatchResultRow } from '../types';
 import { generateSampleCsvContent } from '../lib/demoData';
 import { useDataContext } from '../context/DataContext';
 import { predictTransaction, FEATURE_COLS } from '../lib/xgboost';
+import { formatStandardTime, formatClockTime } from '../lib/timeUtils';
+import { TransactionDetailModal } from './TransactionDetailModal';
 
 interface OverviewTabProps {
   onNavigateTab: (tab: string) => void;
@@ -44,6 +47,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
   const { datasetName, rows, policy, setDataset } = useDataContext();
   const [isLiveActive, setIsLiveActive] = useState<boolean>(rows.length > 0);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
+  const [selectedDetailRow, setSelectedDetailRow] = useState<BatchResultRow | null>(null);
 
   // Live simulation tick if dataset is active
   const [liveRows, setLiveRows] = useState<LiveStreamRow[]>([]);
@@ -250,36 +254,38 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
 
       {/* When NO dataset is uploaded yet: Show clear Onboarding Actions Banner */}
       {!hasData && (
-        <div className="bg-gradient-to-r from-blue-950/40 via-slate-900/90 to-purple-950/40 border border-blue-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="bg-[#0e1628] border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-500/30">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Ready for Data Ingestion & Analysis</span>
+              <div className="flex items-center gap-2 text-xs text-blue-400 font-semibold">
+                <ShieldCheck className="w-4 h-4 text-blue-400" />
+                <span>Production Scoring & Ingestion Gateway</span>
+                <span aria-hidden="true">·</span>
+                <span className="text-slate-400 font-normal">Awaiting batch or live payload</span>
               </div>
-              <h2 className="text-lg font-bold text-white tracking-tight">
-                No dataset uploaded yet
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                No active transaction batch ingested
               </h2>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Upload your transactions CSV file to begin live machine learning scoring, automated fraud alert generation, and custom data visualizations.
+                Connect your core transaction stream or upload an anonymized CSV batch (V1–V28, Amount, Time) to evaluate ML risk probabilities, generate compliance audit logs, and trigger automated risk workflows.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <button
                 onClick={() => onNavigateTab('batch')}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition shadow-lg shadow-blue-600/30"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition shadow-sm"
               >
                 <Upload className="w-4 h-4" />
-                <span>Upload CSV Dataset</span>
+                <span>Ingest Batch CSV</span>
               </button>
 
               <button
                 onClick={handleLoadSampleDataset}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition border border-slate-700"
               >
-                <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
-                <span>Load Sample Benchmark Data</span>
+                <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+                <span>Load Benchmark Demo Data</span>
               </button>
 
               <button
@@ -287,7 +293,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition border border-slate-700"
               >
                 <PlusCircle className="w-4 h-4 text-emerald-400" />
-                <span>Score Single Transaction</span>
+                <span>Manual Transaction Audit</span>
+              </button>
+
+              <button
+                onClick={() => onNavigateTab('benchmark')}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-blue-300 font-semibold text-xs transition border border-slate-700"
+              >
+                <Award className="w-4 h-4 text-blue-400" />
+                <span>Model Performance Metrics</span>
               </button>
             </div>
           </div>
@@ -792,8 +806,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
                   </thead>
                   <tbody className="divide-y divide-slate-850 font-mono">
                     {rows.slice(0, 4).map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-850/50 transition">
-                        <td className="py-2 text-slate-400">T+{row.Time}s</td>
+                      <tr
+                        key={idx}
+                        onClick={() => setSelectedDetailRow(row)}
+                        className="hover:bg-blue-950/40 cursor-pointer transition group"
+                        title="Click to inspect all features V1 to V28 and anomaly drivers"
+                      >
+                        <td className="py-2 text-slate-300">
+                          <div className="group-hover:text-blue-300 font-semibold transition">{formatClockTime(row.Time)}</div>
+                          <div className="text-[9px] text-slate-500 font-mono">T+{row.Time}s</div>
+                        </td>
                         <td className="py-2 text-white font-medium">${row.Amount.toFixed(2)}</td>
                         <td className="py-2">
                           <span className={row.xgb_probability >= 0.8 ? 'text-red-400 font-bold' : row.xgb_probability >= 0.6 ? 'text-amber-400' : 'text-emerald-400'}>
@@ -851,18 +873,18 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
                 onClick={handleLoadSampleDataset}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-semibold text-xs transition border border-cyan-800/60"
               >
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Score This Dataset</span>
+                <span>Score Sample Dataset</span>
               </button>
 
               <button
                 onClick={handleDownloadSampleCsv}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-blue-600/20"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-lg shadow-blue-600/20"
               >
                 {downloadSuccess ? (
                   <>
@@ -872,7 +894,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Download CSV</span>
+                    <span>Download sample_test.csv</span>
                   </>
                 )}
               </button>
@@ -1036,6 +1058,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
           </div>
         </div>
       </div>
+
+      {/* Transaction Deep Dive & V1-V28 Inspector Modal */}
+      <TransactionDetailModal
+        isOpen={!!selectedDetailRow}
+        transaction={selectedDetailRow}
+        onClose={() => setSelectedDetailRow(null)}
+      />
     </div>
   );
 };

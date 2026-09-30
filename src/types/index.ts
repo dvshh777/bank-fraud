@@ -1,6 +1,30 @@
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type RecommendedAction = 'APPROVE' | 'REVIEW' | 'BLOCK';
 
+export type UserRole = 'admin' | 'employee';
+
+export interface UserSession {
+  role: UserRole;
+  name: string;
+  email: string;
+  department: string;
+  avatar: string;
+}
+
+export interface CsvHistoryEntry {
+  id: string;
+  datasetName: string;
+  timestamp: string;
+  createdAt: number;
+  totalCount: number;
+  fraudCount: number;
+  approvedCount: number;
+  reviewCount: number;
+  blockedCount: number;
+  policyUsed: PolicyConfig;
+  rows: BatchResultRow[];
+}
+
 export interface TransactionData {
   Time: number;
   Amount: number;

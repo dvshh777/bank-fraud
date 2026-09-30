@@ -1,4 +1,5 @@
 import { TransactionData, PredictionResult, RiskLevel, RecommendedAction, PolicyConfig, FeatureImpact } from '../types';
+import { loadIsolationForestModel, computeIsolationForestScore } from './isolationForest';
 
 export const FEATURE_COLS = [
   'Time',
@@ -36,6 +37,9 @@ let cachedModel: XGBModelData | null = null;
 let modelLoadingPromise: Promise<XGBModelData | null> | null = null;
 
 export async function loadXGBoostModel(): Promise<XGBModelData | null> {
+  // Concurrently load Isolation Forest model JSON
+  loadIsolationForestModel();
+
   if (cachedModel) return cachedModel;
   if (modelLoadingPromise) return modelLoadingPromise;
 
@@ -123,39 +127,9 @@ function fallbackPredict(features: number[]): number {
   return 1 / (1 + Math.exp(-z));
 }
 
-// Compute Isolation Forest anomaly score
-// Matches scikit-learn decision_function metrics from reports/anomaly_detection_metrics.txt:
-// Legitimate Mean: -0.0980 (std: 0.0421)
-// Caught Fraud Mean: +0.1087
-// Missed Fraud Mean: -0.0472
-// Cutoff (98th percentile): +0.0369
+// Compute Isolation Forest anomaly score using separate model file (/public/models/isolationforest_model.json)
 export function computeAnomalyScore(features: number[]): number {
-  // Features V1..V28 are zero-mean PCA components
-  // Large distance in PCA space or extreme Amount triggers high anomaly
-  let sumSq = 0;
-  // Weight key volatile components more
-  const vWeights = [
-    0.05, 0.08, 0.09, 0.12, 0.08, 0.06, 0.07, 0.06, 0.06, 0.14,
-    0.08, 0.15, 0.05, 0.16, 0.06, 0.08, 0.18, 0.06, 0.05, 0.05,
-    0.05, 0.04, 0.04, 0.04, 0.03, 0.03, 0.03, 0.03
-  ];
-
-  for (let i = 1; i <= 28; i++) {
-    const val = features[i] || 0;
-    const w = vWeights[i - 1] || 0.05;
-    sumSq += Math.pow(val * w, 2);
-  }
-
-  // Amount anomaly: typical amounts are ~$20-80; >$1000 is an outlier
-  const amount = features[29] || 0;
-  if (amount > 500) {
-    sumSq += Math.min(2.5, Math.log10(amount / 500));
-  }
-
-  // Calibrate baseline: sqrt(sumSq) mapped to ~ -0.098 baseline
-  const rawScore = -0.1070 + (Math.sqrt(sumSq) * 0.11);
-  // Cap score to documented min/max range [-0.1553, +0.2581]
-  return Math.min(0.2581, Math.max(-0.1553, rawScore));
+  return computeIsolationForestScore(features);
 }
 
 // Compute feature impacts for local explainability
@@ -240,11 +214,14 @@ export function predictTransaction(
     risk = 'LOW';
   }
 
-  // Recommended Action driven by XGBoost risk classification
+  // Recommended Action driven by XGBoost risk classification:
+  // CRITICAL → directly automated BLOCK
+  // HIGH & MEDIUM → routed to REVIEW (with step-by-step verification, Step-Up OTP, release/block)
+  // LOW → APPROVE
   let action: RecommendedAction;
-  if (risk === 'CRITICAL' || risk === 'HIGH') {
+  if (risk === 'CRITICAL') {
     action = 'BLOCK';
-  } else if (risk === 'MEDIUM') {
+  } else if (risk === 'HIGH' || risk === 'MEDIUM') {
     action = 'REVIEW';
   } else {
     action = 'APPROVE';
@@ -256,11 +233,11 @@ export function predictTransaction(
 
   const explanations: string[] = [];
   if (prob >= policy.criticalThreshold) {
-    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) meets CRITICAL policy threshold (≥ ${(policy.criticalThreshold * 100).toFixed(0)}%), triggering automated BLOCK.`);
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) meets CRITICAL policy threshold (≥ ${(policy.criticalThreshold * 100).toFixed(0)}%), triggering direct automated BLOCK.`);
   } else if (prob >= policy.highThreshold) {
-    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) meets HIGH policy threshold (≥ ${(policy.highThreshold * 100).toFixed(0)}%), triggering automated BLOCK.`);
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) is in HIGH risk band (≥ ${(policy.highThreshold * 100).toFixed(0)}%), routed to REVIEW & Verification Queue.`);
   } else if (prob >= policy.mediumThreshold) {
-    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) falls into MEDIUM policy band (≥ ${(policy.mediumThreshold * 100).toFixed(0)}%), routed to REVIEW.`);
+    explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(2)}%) is in MEDIUM risk band (≥ ${(policy.mediumThreshold * 100).toFixed(0)}%), routed to REVIEW & Verification Queue.`);
   } else {
     explanations.push(`Primary XGBoost fraud probability (${(prob * 100).toFixed(4)}%) is within LOW policy band (< ${(policy.mediumThreshold * 100).toFixed(0)}%), resulting in APPROVE.`);
   }
